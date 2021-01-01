@@ -21,6 +21,7 @@ func main() {
 	flag.Parse()
 	if *ignoredS != "" {
 		ignored = strings.Split(*ignoredS, ",")
+		log.Printf("%v", ignored)
 	}
 	dirs := flag.Args()
 

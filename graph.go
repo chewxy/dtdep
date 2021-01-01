@@ -124,13 +124,13 @@ func cost(from, to *types.Named) float64 {
 	}
 	switch {
 	case eF && eT:
-		return 2.0
+		return 1.0
 	case !eT && !toIsClosed:
 		return 3.0
 	case !eT && toIsClosed:
 		return 4 // most heavy
 	case !eF:
-		return 1
+		return 2.0
 
 	}
 	panic("Unreachable")
