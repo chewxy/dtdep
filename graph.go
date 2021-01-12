@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"go/types"
 	"log"
 	"strconv"
 	"sync"
 
+	"golang.org/x/exp/rand"
 	GR "gonum.org/v1/gonum/graph"
+	"gonum.org/v1/gonum/graph/community"
 	"gonum.org/v1/gonum/graph/encoding"
 	"gonum.org/v1/gonum/graph/simple"
 )
@@ -21,6 +24,8 @@ var allTypes []T
 var uniqTypes = make(map[string]int64)
 
 var graph = make(map[T]map[T]float64) // T -> list of types that depend on T.
+
+var color = make(map[int64]string)
 
 func isIgnored(a string) bool {
 	for _, s := range ignored {
@@ -45,6 +50,13 @@ func fullname(t *types.Named) string {
 		return t.Obj().Id()
 	}
 	return t.Obj().Pkg().Path() + "." + t.Obj().Name()
+}
+
+func (t T) Attributes() []encoding.Attribute {
+	return []encoding.Attribute{
+		{Key: "color", Value: color[t.id]},
+		{Key: "label", Value: fmt.Sprintf(`<<font color="%s">%s</font>>`, color[t.id], fullname(t.Named))},
+	}
 }
 
 // addKnown adds a known type to the list
@@ -259,6 +271,14 @@ func newGraph() *simple.WeightedDirectedGraph {
 			g.SetWeightedEdge(we{g.NewWeightedEdge(from, to, weight)})
 		}
 	}
+
+	comm := community.Modularize(g, 1, rand.NewSource(1)).Communities()
+	for i, c := range comm {
+		for _, n := range c {
+			color[n.ID()] = fmt.Sprintf("/paired12/%d", i%12+1)
+		}
+	}
+
 	return g
 }
 
